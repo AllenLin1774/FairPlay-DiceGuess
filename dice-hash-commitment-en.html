@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Hash Commitment Dice Guess</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --muted: #64748b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 16px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 0.875rem;
+    }
+
+    .tabs {
+      display: flex;
+      background: var(--card);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      border: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px 12px;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      border: 1px solid var(--border);
+      display: none;
+    }
+
+    .card.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 1rem;
+      background: #fff;
+      color: var(--text);
+      transition: border-color 0.2s;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.85rem;
+      word-break: break-all;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: var(--text);
+      margin-top: 8px;
+    }
+
+    .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+
+    .result-box {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      display: none;
+    }
+
+    .result-box.show {
+      display: block;
+    }
+
+    .result-box.success {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+    }
+
+    .result-box.error {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+    }
+
+    .result-box.info {
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      color: #075985;
+    }
+
+    .hash-display {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.8rem;
+      word-break: break-all;
+      margin-top: 8px;
+      min-height: 48px;
+      color: #334155;
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .choice-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .choice-btn {
+      padding: 16px 6px 12px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      font-size: 2.2rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+      line-height: 1.15;
+    }
+
+    .choice-btn .num {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .choice-btn.selected {
+      border-color: var(--primary);
+      background: #eff6ff;
+      color: var(--primary);
+    }
+
+    .choice-btn:hover {
+      border-color: #93c5fd;
+    }
+
+    .rules {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 0.82rem;
+      color: #475569;
+      margin-bottom: 16px;
+    }
+
+    .rules ol {
+      margin-left: 18px;
+    }
+
+    .rules li {
+      margin-bottom: 4px;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 28px;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .copy-btn {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      background: #e2e8f0;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #334155;
+    }
+
+    .copy-btn:hover {
+      background: #cbd5e1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Hash Commitment Dice Guess</h1>
+      <p>Commit a number. Opponent gets 3 guesses. Take turns.</p>
+    </header>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="play">Play</button>
+      <button class="tab-btn" data-tab="verify">Verify</button>
+    </div>
+
+    <div id="play" class="card active">
+      <div class="rules">
+        <ol>
+          <li>You pick 1–6 and a salt, then send the hash.</li>
+          <li>Opponent gets 3 guesses.</li>
+          <li>After 3 guesses, reveal your number + salt.</li>
+          <li>If they guessed it, they win this round. Then switch roles.</li>
+        </ol>
+      </div>
+
+      <div class="form-group">
+        <label>Your Secret Number</label>
+        <div class="choice-grid">
+          <button type="button" class="choice-btn" data-value="1">⚀<span class="num">1</span></button>
+          <button type="button" class="choice-btn" data-value="2">⚁<span class="num">2</span></button>
+          <button type="button" class="choice-btn" data-value="3">⚂<span class="num">3</span></button>
+          <button type="button" class="choice-btn" data-value="4">⚃<span class="num">4</span></button>
+          <button type="button" class="choice-btn" data-value="5">⚄<span class="num">5</span></button>
+          <button type="button" class="choice-btn" data-value="6">⚅<span class="num">6</span></button>
+        </div>
+        <input type="hidden" id="choice" value="">
+      </div>
+
+      <div class="form-group">
+        <label>Lucky Symbol (Salt)</label>
+        <input type="text" id="salt" placeholder="Enter a secret string, e.g. mysecret123..." autocomplete="off">
+        <p class="hint">Keep this secret until after the 3 guesses. Make it long and random.</p>
+      </div>
+
+      <button class="btn btn-primary" id="commitBtn">Generate Hash Commitment</button>
+      <button class="btn btn-secondary" id="randomSaltBtn">Generate Random Salt</button>
+
+      <div id="commitResult" class="result-box info">
+        <strong>Your Hash (send this first):</strong>
+        <div class="hash-display" id="hashOutput"></div>
+        <button class="copy-btn" id="copyHashBtn">Copy Hash</button>
+        <p class="hint" style="margin-top:12px;">
+          Send only the hash now. After the opponent uses 3 guesses, reveal your number + salt so they can verify.
+        </p>
+      </div>
+    </div>
+
+    <div id="verify" class="card">
+      <div class="form-group">
+        <label>Opponent’s Revealed Number</label>
+        <div class="choice-grid">
+          <button type="button" class="choice-btn verify-choice" data-value="1">⚀<span class="num">1</span></button>
+          <button type="button" class="choice-btn verify-choice" data-value="2">⚁<span class="num">2</span></button>
+          <button type="button" class="choice-btn verify-choice" data-value="3">⚂<span class="num">3</span></button>
+          <button type="button" class="choice-btn verify-choice" data-value="4">⚃<span class="num">4</span></button>
+          <button type="button" class="choice-btn verify-choice" data-value="5">⚄<span class="num">5</span></button>
+          <button type="button" class="choice-btn verify-choice" data-value="6">⚅<span class="num">6</span></button>
+        </div>
+        <input type="hidden" id="verifyChoice" value="">
+      </div>
+
+      <div class="form-group">
+        <label>Opponent’s Lucky Symbol (Salt)</label>
+        <input type="text" id="verifySalt" placeholder="The salt the opponent revealed" autocomplete="off">
+      </div>
+
+      <div class="form-group">
+        <label>Opponent’s Hash</label>
+        <textarea id="verifyHash" placeholder="Paste the hash the opponent sent earlier" rows="3"></textarea>
+      </div>
+
+      <button class="btn btn-primary" id="verifyBtn">Verify</button>
+
+      <div id="verifyResult" class="result-box"></div>
+    </div>
+
+    <footer>
+      Uses SHA-256 · Format: "Number:Salt"
+    </footer>
+  </div>
+
+  <script>
+    async function sha256(message) {
+      const msgBuffer = new TextEncoder().encode(message);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    document.querySelectorAll('#play .choice-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#play .choice-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        document.getElementById('choice').value = btn.dataset.value;
+      });
+    });
+
+    document.querySelectorAll('.verify-choice').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.verify-choice').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        document.getElementById('verifyChoice').value = btn.dataset.value;
+      });
+    });
+
+    document.getElementById('randomSaltBtn').addEventListener('click', () => {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+      let salt = '';
+      for (let i = 0; i < 16; i++) {
+        salt += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      document.getElementById('salt').value = salt;
+    });
+
+    document.getElementById('commitBtn').addEventListener('click', async () => {
+      const choice = document.getElementById('choice').value;
+      const salt = document.getElementById('salt').value.trim();
+
+      if (!choice) {
+        alert('Please select a number (1–6)');
+        return;
+      }
+      if (!salt) {
+        alert('Please enter a Lucky Symbol (Salt)');
+        return;
+      }
+
+      const preimage = `${choice}:${salt}`;
+      const hash = await sha256(preimage);
+
+      document.getElementById('hashOutput').textContent = hash;
+      document.getElementById('commitResult').classList.add('show');
+    });
+
+    document.getElementById('copyHashBtn').addEventListener('click', () => {
+      const text = document.getElementById('hashOutput').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copyHashBtn');
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy Hash', 1500);
+      });
+    });
+
+    document.getElementById('verifyBtn').addEventListener('click', async () => {
+      const choice = document.getElementById('verifyChoice').value;
+      const salt = document.getElementById('verifySalt').value.trim();
+      const claimedHash = document.getElementById('verifyHash').value.trim().toLowerCase();
+
+      const resultBox = document.getElementById('verifyResult');
+      resultBox.className = 'result-box';
+
+      if (!choice) {
+        alert('Please select the opponent’s revealed number');
+        return;
+      }
+      if (!salt) {
+        alert('Please enter the opponent’s Lucky Symbol');
+        return;
+      }
+      if (!claimedHash) {
+        alert('Please paste the opponent’s hash');
+        return;
+      }
+
+      const preimage = `${choice}:${salt}`;
+      const computedHash = await sha256(preimage);
+
+      if (computedHash !== claimedHash) {
+        resultBox.classList.add('show', 'error');
+        resultBox.innerHTML = `
+          <strong>❌ Verification Failed!</strong><br>
+          The hash does not match. The opponent may have changed the number.
+          <div class="hash-display" style="margin-top:10px;font-size:0.75rem;">${computedHash}</div>
+        `;
+        return;
+      }
+
+      resultBox.classList.add('show', 'success');
+      resultBox.innerHTML = `
+        <strong>✅ Hash matches.</strong><br>
+        The opponent’s number was “${choice}”.
+        <div class="hash-display" style="margin-top:10px;font-size:0.75rem;">${computedHash}</div>
+      `;
+    });
+  </script>
+</body>
+</html>
